@@ -27,7 +27,7 @@ unless defined?(Sports::Registry)
 end
 
 # Load catalog
-catalog_path = File.expand_path("../../../../catalog/event_types.yaml", __FILE__)
+catalog_path = File.expand_path("../../../catalog/event_types.yaml", __FILE__)
 catalog = YAML.safe_load_file(catalog_path, permitted_classes: [Symbol])
 
 # Load club templates
