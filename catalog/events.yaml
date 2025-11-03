@@ -1,0 +1,580 @@
+---
+# Water Polo v1 Event Catalog
+# Single source of truth for all event kinds, fields, labels, and UI hints
+
+sport_key: water_polo
+version_major: 1
+
+event_types:
+  - kind: goal
+    label: Goal
+    icon: 🥅
+    description: A goal scored by a player
+    fields:
+      - name: scorer_id
+        type: participant_id
+        label: Scorer
+        required: true
+        description: The player who scored the goal
+      - name: assist_id
+        type: participant_id
+        label: Assist
+        required: false
+        description: The player who assisted the goal
+      - name: time
+        type: string
+        label: Game Time
+        required: true
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: false
+        description: Quarter number (1-4)
+        min: 1
+        max: 4
+      - name: method
+        type: enum
+        label: Shot Type
+        required: false
+        description: How the goal was scored
+        options:
+          - value: regular
+            label: Field Goal
+          - value: penalty
+            label: Penalty Shot
+    rules:
+      - field: period
+        condition: between
+        min: 1
+        max: 4
+      - field: time
+        condition: format
+        pattern: '^\d{1,2}:\d{2}$'
+    ui:
+      primary_action: true
+      color: green
+      display_format: "{scorer} scored ({method})"
+    examples:
+      - scorer_id: "p1"
+        time: "6:45"
+        period: 1
+        method: center
+      - scorer_id: "p2"
+        assist_id: "p3"
+        time: "3:22"
+        period: 2
+        method: counter_attack
+
+  - kind: exclusion
+    label: Exclusion
+    icon: 🚫
+    description: A player excluded from the game temporarily
+    fields:
+      - name: player_id
+        type: participant_id
+        label: Player
+        required: true
+        description: The player who was excluded
+      - name: duration
+        type: integer
+        label: Duration (seconds)
+        required: true
+        description: Length of exclusion in seconds
+        default: 20
+        options: [20, 240]
+      - name: reason
+        type: enum
+        label: Reason
+        required: true
+        description: Reason for the exclusion
+        options:
+          - value: ordinary_foul
+            label: Ordinary Foul
+          - value: exclusion_foul
+            label: Exclusion Foul
+          - value: penalty_foul
+            label: Penalty Foul
+          - value: brutality
+            label: Brutality
+      - name: time
+        type: string
+        label: Game Time
+        required: true
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number (1-4)
+        min: 1
+        max: 4
+    rules:
+      - field: duration
+        condition: in
+        values: [20, 240]
+      - field: period
+        condition: between
+        min: 1
+        max: 4
+    ui:
+      primary_action: false
+      color: red
+      display_format: "{player} excluded for {duration}s ({reason})"
+    examples:
+      - player_id: "p4"
+        duration: 20
+        reason: exclusion_foul
+        time: "5:30"
+        period: 1
+      - player_id: "p5"
+        duration: 240
+        reason: brutality
+        time: "2:15"
+        period: 3
+
+  - kind: steal
+    label: Steal
+    icon: 🤺
+    description: Player steals the ball from opponent
+    fields:
+      - name: stealer_id
+        type: participant_id
+        label: Stealer
+        required: true
+        description: Player who stole the ball (primary)
+      - name: stolen_from_id
+        type: participant_id
+        label: Stolen From
+        required: false
+        description: Player who lost the ball (secondary, opposite team)
+      - name: time
+        type: string
+        label: Game Time
+        required: true
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number (1-4)
+        min: 1
+        max: 4
+    rules:
+      - field: period
+        condition: between
+        min: 1
+        max: 4
+    ui:
+      primary_action: true
+      color: blue
+      display_format: "{stealer_id} steals from {stolen_from_id}"
+    examples:
+      - stealer_id: "p1"
+        stolen_from_id: "p2"
+        time: "5:30"
+        period: 1
+
+  - kind: five_meter
+    label: 5-Meter Penalty
+    icon: 🚩
+    description: 5-meter penalty awarded
+    fields:
+      - name: fouler_id
+        type: participant_id
+        label: Player Who Fouled
+        required: true
+        description: Player who committed the foul (primary)
+      - name: fouled_id
+        type: participant_id
+        label: Player Who Drew Penalty
+        required: false
+        description: Player who was fouled (secondary, opposite team)
+      - name: time
+        type: string
+        label: Game Time
+        required: true
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number (1-4)
+        min: 1
+        max: 4
+    rules:
+      - field: period
+        condition: between
+        min: 1
+        max: 4
+    ui:
+      primary_action: false
+      color: orange
+      display_format: "5-meter penalty against {fouler_id}"
+    examples:
+      - fouler_id: "p3"
+        fouled_id: "p4"
+        time: "3:15"
+        period: 2
+
+  - kind: won_sprint
+    label: Won Sprint
+    icon: 🏊
+    description: Player wins opening sprint
+    fields:
+      - name: winner_id
+        type: participant_id
+        label: Winner
+        required: true
+        description: Player who won the sprint (primary)
+      - name: time
+        type: string
+        label: Game Time
+        required: true
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number (1-4)
+        min: 1
+        max: 4
+    rules:
+      - field: period
+        condition: between
+        min: 1
+        max: 4
+    ui:
+      primary_action: true
+      color: green
+      display_format: "{winner_id} wins sprint"
+    examples:
+      - winner_id: "p1"
+        time: "8:00"
+        period: 1
+
+  - kind: block
+    label: Block
+    icon: 🛡️
+    description: Player blocks a shot
+    fields:
+      - name: blocker_id
+        type: participant_id
+        label: Blocker
+        required: true
+        description: Player who blocked the shot (primary)
+      - name: shooter_id
+        type: participant_id
+        label: Shooter
+        required: false
+        description: Player whose shot was blocked (secondary, opposite team)
+      - name: time
+        type: string
+        label: Game Time
+        required: true
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number (1-4)
+        min: 1
+        max: 4
+    rules:
+      - field: period
+        condition: between
+        min: 1
+        max: 4
+    ui:
+      primary_action: true
+      color: purple
+      display_format: "{blocker_id} blocks shot"
+    examples:
+      - blocker_id: "p5"
+        shooter_id: "p6"
+        time: "4:30"
+        period: 3
+
+  - kind: misconduct
+    label: Misconduct
+    icon: 🟥
+    description: Red or yellow card issued
+    fields:
+      - name: recipient_id
+        type: participant_id
+        label: Recipient
+        required: true
+        description: Player or coach receiving the card (primary)
+      - name: card_type
+        type: enum
+        label: Card Type
+        required: true
+        description: Type of card issued
+        options:
+          - value: yellow
+            label: Yellow Card
+          - value: red
+            label: Red Card
+      - name: reason
+        type: enum
+        label: Reason
+        required: true
+        description: Reason for the misconduct
+        options:
+          - value: unsportsmanlike_conduct
+            label: Unsportsmanlike Conduct
+          - value: brutality
+            label: Brutality
+          - value: delay_of_game
+            label: Delay of Game
+          - value: disrespect
+            label: Disrespect
+      - name: is_brutality
+        type: boolean
+        label: Is Brutality
+        required: false
+        description: If true and red card, results in 240s exclusion
+        default: false
+      - name: time
+        type: string
+        label: Game Time
+        required: true
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number (1-4)
+        min: 1
+        max: 4
+    rules:
+      - field: period
+        condition: between
+        min: 1
+        max: 4
+    ui:
+      primary_action: false
+      color: red
+      display_format: "{card_type} card to {recipient_id}"
+    examples:
+      - recipient_id: "p7"
+        card_type: yellow
+        reason: unsportsmanlike_conduct
+        time: "2:45"
+        period: 2
+      - recipient_id: "p8"
+        card_type: red
+        reason: brutality
+        is_brutality: true
+        time: "1:30"
+        period: 4
+
+  - kind: timeout
+    label: Timeout
+    icon: ⏱️
+    description: Team timeout called
+    fields:
+      - name: team
+        type: enum
+        label: Team
+        required: true
+        description: Which team called the timeout
+        options:
+          - value: us
+            label: Us
+          - value: them
+            label: Them
+          - value: referee
+            label: Referee Timeout
+      - name: duration
+        type: integer
+        label: Duration (seconds)
+        required: true
+        description: Length of timeout in seconds
+        default: 60
+      - name: time
+        type: string
+        label: Game Time
+        required: true
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number (1-4)
+        min: 1
+        max: 4
+    rules:
+      - field: duration
+        condition: equals
+        value: 60
+      - field: period
+        condition: between
+        min: 1
+        max: 4
+    ui:
+      primary_action: false
+      color: blue
+      display_format: "{team} timeout"
+    examples:
+      - team: us
+        duration: 60
+        time: "4:00"
+        period: 2
+
+  - kind: period_start
+    label: Period Start
+    icon: 🔔
+    description: Start of a quarter
+    fields:
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number starting (1-4, 5+ for overtime)
+        min: 1
+      - name: time
+        type: string
+        label: Time
+        required: true
+        description: Starting time (usually 8:00)
+        pattern: '^\d{1,2}:\d{2}$'
+    rules:
+      - field: period
+        condition: gte
+        value: 1
+    ui:
+      primary_action: false
+      color: gray
+      display_format: "Start of Period {period}"
+    examples:
+      - period: 1
+        time: "8:00"
+      - period: 5
+        time: "3:00"
+
+  - kind: period_end
+    label: Period End
+    icon: 🔔
+    description: End of a quarter
+    fields:
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Quarter number that ended (1-4, 5+ for overtime)
+        min: 1
+      - name: time
+        type: string
+        label: Time
+        required: true
+        description: Should be 0:00
+        pattern: '^0:00$'
+    rules:
+      - field: period
+        condition: gte
+        value: 1
+      - field: time
+        condition: equals
+        value: "0:00"
+    ui:
+      primary_action: false
+      color: gray
+      display_format: "End of Period {period}"
+    examples:
+      - period: 1
+        time: "0:00"
+      - period: 5
+        time: "0:00"
+
+  - kind: start_shootout
+    label: Start Shootout
+    icon: 🎯
+    description: Begins shootout period (sudden death)
+    fields:
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Shootout period (always -1)
+        default: -1
+    rules:
+      - field: period
+        condition: equals
+        value: -1
+    ui:
+      primary_action: false
+      color: yellow
+      display_format: "Shootout begins"
+    examples:
+      - period: -1
+
+  - kind: comment
+    label: Comment
+    icon: 💬
+    description: Timeline note or annotation
+    fields:
+      - name: text
+        type: string
+        label: Comment Text
+        required: true
+        description: The comment or note
+      - name: time
+        type: string
+        label: Game Time
+        required: false
+        description: Time in format MM:SS
+        pattern: '^\d{1,2}:\d{2}$'
+      - name: period
+        type: integer
+        label: Period
+        required: false
+        description: Quarter number
+        min: 1
+    ui:
+      primary_action: false
+      color: gray
+      display_format: "{text}"
+    examples:
+      - text: "Coach called timeout to discuss strategy"
+        time: "5:00"
+        period: 2
+      - text: "Weather delay - 10 minutes"
+
+  - kind: game_end
+    label: Game End
+    icon: 🏁
+    description: End of the game
+    fields:
+      - name: time
+        type: string
+        label: Time
+        required: true
+        description: Should be 0:00
+        pattern: '^0:00$'
+      - name: period
+        type: integer
+        label: Period
+        required: true
+        description: Final period (typically 4, or -1 for shootout)
+    rules:
+      - field: time
+        condition: equals
+        value: "0:00"
+    ui:
+      primary_action: false
+      color: black
+      display_format: "Game Over"
+    examples:
+      - time: "0:00"
+        period: 4
+      - time: "0:00"
+        period: -1
